@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AddUser } from './users.add.process';
 import { BullModule } from '@nestjs/bull';
 import { UserUpdate } from './users.update.process';
+import { RedisService } from 'src/redis/redis.service';
 
 @Module({
   imports: [
@@ -15,6 +16,6 @@ import { UserUpdate } from './users.update.process';
     }),
   ],
   controllers: [UsersController],
-  providers: [UsersService, AddUser, UserUpdate],
+  providers: [UsersService, AddUser, UserUpdate, RedisService],
 })
 export class UsersModule {}

@@ -5,6 +5,7 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { UserEntity } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { RedisService } from '../redis/redis.service';
 
 @Injectable()
 export class UsersService {
@@ -12,6 +13,7 @@ export class UsersService {
     @InjectQueue('users') private readonly userQueue: Queue,
     @InjectRepository(UserEntity)
     private readonly userRepository: Repository<UserEntity>,
+    private readonly redisService: RedisService,
   ) {}
   async create() {
     console.time('startCreateUser');
@@ -34,12 +36,14 @@ export class UsersService {
   }
 
   async update(id: string, fields: Partial<UpdateUserDto>) {
-    const user = await this.userRepository.findOne({ where: { id: id } });
+    console.time('startUpdateUser');
+    const user = await this.redisService.get('usersList', id);
     if (!user) {
       throw new BadRequestException('User not found or not exists');
     }
     const data = { user, fields };
     await this.userQueue.add('userUpdate', data);
+    console.timeEnd('startUpdateUser');
     return;
   }
 }
